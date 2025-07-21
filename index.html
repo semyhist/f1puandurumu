@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 2023 PUAN DURUMU</title>
+    <link href="https://fonts.cdnfonts.com/css/formula1-display-wide" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="animate__animated animate__fadeInDown">
+            <h1 class="logo">ARKA KANAT <span>PUAN DURUMU</span></h1>
+            <div class="header-bottom">
+                <h2 class="title">PİLOT VE TAKIM SIRALAMASI</h2>
+                <div class="date" id="current-date"></div>
+            </div>
+            <div class="red-line"></div>
+        </header>
+
+        <div class="tabs animate__animated animate__fadeIn animate__delay-1s">
+            <button class="tab-button active" data-tab="drivers">
+                <span>PİLOTLAR</span>
+                <div class="underline"></div>
+            </button>
+            <button class="tab-button" data-tab="teams">
+                <span>TAKIMLAR</span>
+                <div class="underline"></div>
+            </button>
+        </div>
+
+        <div id="drivers-content" class="tab-content active animate__animated animate__fadeIn animate__delay-1s">
+            <div class="leaderboard" id="drivers-leaderboard">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Veriler yükleniyor...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="teams-content" class="tab-content animate__animated animate__fadeIn animate__delay-1s">
+            <div class="leaderboard" id="teams-leaderboard"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

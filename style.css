@@ -1,0 +1,426 @@
+@font-face {
+    font-family: 'Formula1 Display';
+    src: url('https://fonts.cdnfonts.com/css/formula1-display-wide') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Formula1 Display';
+    src: url('https://fonts.cdnfonts.com/css/formula1-display-wide') format('woff2');
+    font-weight: bold;
+    font-style: normal;
+}
+
+:root {
+    /* Renkler */
+    --red: #E10600;
+    --black: #0A0A0A;
+    --white: #FFFFFF;
+    --gray: #38383F;
+    --light-gray: #949498;
+    
+    /* Takım Renkleri */
+    --redbull: #0600EF;
+    --ferrari: #DC0000;
+    --mercedes: #00D2BE;
+    --alpine: #0090FF;
+    --mclaren: #FF8700;
+    --aston: #006F62;
+    --alfa: #900000;
+    --haas: #FFFFFF;
+    --alphatauri: #2B4562;
+    --williams: #005AFF;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Formula1 Display', sans-serif;
+    background-color: var(--black);
+    color: var(--white);
+    padding: 20px;
+    line-height: 1.4;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    background-color: #121212;
+    padding: 25px;
+    border-radius: 5px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.logo {
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--white);
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo span {
+    color: var(--red);
+}
+
+.header-bottom {
+    margin-top: 15px;
+}
+
+.title {
+    font-size: 1.6rem;
+    color: var(--white);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: normal;
+    margin-bottom: 5px;
+}
+
+.date {
+    font-size: 1rem;
+    color: var(--light-gray);
+}
+
+.red-line {
+    height: 3px;
+    background: var(--red);
+    width: 100px;
+    margin: 15px auto 0;
+    border-radius: 3px;
+}
+
+.tabs {
+    display: flex;
+    margin-bottom: 20px;
+    justify-content: center;
+    gap: 20px;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    color: var(--white);
+    padding: 10px 5px;
+    font-family: 'Formula1 Display';
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.tab-button span {
+    position: relative;
+    z-index: 2;
+}
+
+.tab-button .underline {
+    height: 2px;
+    width: 0;
+    background: var(--red);
+    transition: all 0.3s ease;
+    margin-top: 5px;
+}
+
+.tab-button.active {
+    color: var(--red);
+}
+
+.tab-button.active .underline {
+    width: 100%;
+}
+
+.tab-button:hover .underline {
+    width: 100%;
+}
+
+.tab-content {
+    display: none;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.leaderboard {
+    margin-top: 15px;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--light-gray);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(225, 6, 0, 0.2);
+    border-top: 4px solid var(--red);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.driver, .team {
+    display: grid;
+    grid-template-columns: 50px 60px 1fr 80px;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 8px;
+    background-color: #1E1E1E;
+    gap: 15px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    animation: fadeInItem 0.5s ease-out;
+    animation-fill-mode: both;
+}
+
+@keyframes fadeInItem {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.driver {
+    border-left: 4px solid;
+}
+
+.driver:hover, .team:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.position {
+    font-weight: bold;
+    font-size: 1.4rem;
+    color: var(--white);
+    text-align: center;
+}
+
+.team-logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.driver:hover .team-logo, .team:hover .team-logo {
+    transform: scale(1.1);
+}
+
+.name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: color 0.3s ease;
+}
+
+.points {
+    font-size: 1.3rem;
+    font-weight: bold;
+    text-align: right;
+}
+
+.driver.no-points {
+    opacity: 0.6;
+}
+
+.driver.no-points .name {
+    color: var(--light-gray) !important;
+}
+
+.driver.no-points .team-logo {
+    opacity: 0.5;
+}
+
+.driver.no-points .points {
+    color: var(--light-gray);
+}
+
+/* Takım renkleri */
+.driver-redbull { border-left-color: var(--redbull); }
+.driver-ferrari { border-left-color: var(--ferrari); }
+.driver-mercedes { border-left-color: var(--mercedes); }
+.driver-alpine { border-left-color: var(--alpine); }
+.driver-mclaren { border-left-color: var(--mclaren); }
+.driver-aston { border-left-color: var(--aston); }
+.driver-alfa { border-left-color: var(--alfa); }
+.driver-haas { border-left-color: var(--haas); }
+.driver-alphatauri { border-left-color: var(--alphatauri); }
+.driver-williams { border-left-color: var(--williams); }
+
+.driver-redbull .name { color: var(--redbull); }
+.driver-ferrari .name { color: var(--ferrari); }
+.driver-mercedes .name { color: var(--mercedes); }
+.driver-alpine .name { color: var(--alpine); }
+.driver-mclaren .name { color: var(--mclaren); }
+.driver-aston .name { color: var(--aston); }
+.driver-alfa .name { color: var(--alfa); }
+.driver-haas .name { color: var(--haas); }
+.driver-alphatauri .name { color: var(--alphatauri); }
+.driver-williams .name { color: var(--williams); }
+
+/* Takım listesi için stiller */
+.team {
+    background-color: #252525;
+    border-left: 4px solid;
+}
+
+.team-redbull { border-left-color: var(--redbull); }
+.team-ferrari { border-left-color: var(--ferrari); }
+.team-mercedes { border-left-color: var(--mercedes); }
+.team-alpine { border-left-color: var(--alpine); }
+.team-mclaren { border-left-color: var(--mclaren); }
+.team-aston { border-left-color: var(--aston); }
+.team-alfa { border-left-color: var(--alfa); }
+.team-haas { border-left-color: var(--haas); }
+.team-alphatauri { border-left-color: var(--alphatauri); }
+.team-williams { border-left-color: var(--williams); }
+
+.team-redbull .name { color: var(--redbull); }
+.team-ferrari .name { color: var(--ferrari); }
+.team-mercedes .name { color: var(--mercedes); }
+.team-alpine .name { color: var(--alpine); }
+.team-mclaren .name { color: var(--mclaren); }
+.team-aston .name { color: var(--aston); }
+.team-alfa .name { color: var(--alfa); }
+.team-haas .name { color: var(--haas); }
+.team-alphatauri .name { color: var(--alphatauri); }
+.team-williams .name { color: var(--williams); }
+
+/* Responsive Tasarım */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .logo {
+        font-size: 2.2rem;
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .title {
+        font-size: 1.3rem;
+    }
+    
+    .tabs {
+        gap: 10px;
+    }
+    
+    .tab-button {
+        font-size: 0.9rem;
+        padding: 8px 5px;
+    }
+    
+    .driver, .team {
+        grid-template-columns: 40px 50px 1fr 60px;
+        padding: 12px 10px;
+        gap: 10px;
+    }
+    
+    .position {
+        font-size: 1.2rem;
+    }
+    
+    .name {
+        font-size: 1rem;
+    }
+    
+    .points {
+        font-size: 1.1rem;
+    }
+    
+    .team-logo {
+        width: 35px;
+        height: 35px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        padding: 12px;
+    }
+    
+    .logo {
+        font-size: 1.8rem;
+    }
+    
+    .title {
+        font-size: 1.1rem;
+    }
+    
+    .date {
+        font-size: 0.9rem;
+    }
+    
+    .driver, .team {
+        grid-template-columns: 30px 40px 1fr 50px;
+        padding: 10px 8px;
+        gap: 8px;
+    }
+    
+    .position {
+        font-size: 1rem;
+    }
+    
+    .name {
+        font-size: 0.9rem;
+    }
+    
+    .points {
+        font-size: 1rem;
+    }
+    
+    .team-logo {
+        width: 30px;
+        height: 30px;
+    }
+}
