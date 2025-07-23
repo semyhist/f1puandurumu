@@ -1,21 +1,26 @@
 <!DOCTYPE html>
-<html lang="tr">
-
+<html lang="tr" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>F1 2023 PUAN DURUMU</title>
+    <title>ARKA KANAT PUAN DURUMU</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js">
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
     <div class="container">
         <header class="animate__animated animate__fadeInDown">
-            <h1 class="logo">ARKA KANAT <span>PUAN DURUMU</span></h1>
+            <div class="header-top">
+                <h1 class="logo">ARKA KANAT <span>PUAN DURUMU</span></h1>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                    <span class="theme-icon light-icon">☀️</span>
+                    <span class="theme-icon dark-icon">🌙</span>
+                </button>
+            </div>
             <div class="header-bottom">
                 <h2 class="title">PİLOT VE TAKIM SIRALAMASI</h2>
                 <div class="date" id="current-date"></div>
@@ -32,9 +37,17 @@
                 <span>TAKIMLAR</span>
                 <div class="underline"></div>
             </button>
+            <button class="tab-button" data-tab="races">
+                <span>YARIŞLAR</span>
+                <div class="underline"></div>
+            </button>
+            <button class="tab-button" data-tab="performance">
+                <span>TAKIM PERFORMANSI</span>
+                <div class="underline"></div>
+            </button>
         </div>
 
-        <div id="drivers-content" class="tab-content active animate__animated animate__fadeIn animate__delay-1s">
+        <div id="drivers-content" class="tab-content active">
             <div class="leaderboard" id="drivers-leaderboard">
                 <div class="loading">
                     <div class="loading-spinner"></div>
@@ -43,13 +56,28 @@
             </div>
         </div>
 
-        <div id="teams-content" class="tab-content animate__animated animate__fadeIn animate__delay-1s">
+        <div id="teams-content" class="tab-content">
             <div class="leaderboard" id="teams-leaderboard"></div>
+        </div>
+
+        <div id="races-content" class="tab-content">
+            <div class="race-selector">
+                <select id="race-select" class="race-select">
+                    <option value="">Bir yarış seçin</option>
+                </select>
+            </div>
+            <div class="race-results" id="race-results"></div>
+        </div>
+
+        <div id="performance-content" class="tab-content">
+            <div class="performance-container">
+                <canvas id="team-performance-chart"></canvas>
+            </div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
 </body>
-
 </html>

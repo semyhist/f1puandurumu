@@ -1,4 +1,4 @@
-// Takım verileri (güncellenmiş logo linkleriyle)
+// Takım verileri
 const TEAMS = {
     "Red Bull": {
         abbreviation: "RB",
@@ -62,16 +62,60 @@ const TEAMS = {
     }
 };
 
+const RACES = [
+    "ISP", "AUS", "AZE", "CAN", "HUN", "SPA", "SIN", "MON",
+    "SIL", "BRA", "BAH", "ABU"
+];
+
+let teamPerformanceChart = null;
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Tema kontrolü
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
     // Tarih bilgisini ayarla
     updateDate();
     
     // Tab sistemini ayarla
     setupTabs();
     
+    // Yarış seçiciyi ayarla
+    setupRaceSelector();
+    
     // Verileri yükle
     loadData();
+    
+    // Tema değiştirme butonu
+    document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
 });
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    // Grafik temasını güncelle
+    if (teamPerformanceChart) {
+        updateChartTheme();
+    }
+}
+
+function updateChartTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#FFFFFF' : '#333333';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    
+    if (teamPerformanceChart) {
+        teamPerformanceChart.options.scales.x.grid.color = gridColor;
+        teamPerformanceChart.options.scales.y.grid.color = gridColor;
+        teamPerformanceChart.options.scales.x.ticks.color = textColor;
+        teamPerformanceChart.options.scales.y.ticks.color = textColor;
+        teamPerformanceChart.options.plugins.legend.labels.color = textColor;
+        teamPerformanceChart.update();
+    }
+}
 
 function updateDate() {
     const dateElement = document.getElementById('current-date');
@@ -103,19 +147,28 @@ function setupTabs() {
             const tabName = this.dataset.tab;
             const tabContent = document.getElementById(`${tabName}-content`);
             tabContent.classList.add('active');
-            
-            // Animasyon ekle
-            tabContent.classList.add('animate__animated', 'animate__fadeIn');
         });
     });
 }
 
-async function loadData() {
+function setupRaceSelector() {
+    const select = document.getElementById('race-select');
+    
+    RACES.forEach(race => {
+        const option = document.createElement('option');
+        option.value = race;
+        option.textContent = race;
+        select.appendChild(option);
+    });
+    
+    select.addEventListener('change', showRaceResults);
+}
+
+async function showRaceResults(event) {
+    const raceName = event.target.value;
+    if (!raceName) return;
+
     try {
-        // Yükleme animasyonunu göster
-        showLoading();
-        
-        // Excel dosyasını yükle
         const response = await fetch('puanlar.xlsx');
         if (!response.ok) throw new Error('Dosya bulunamadı');
         
@@ -124,15 +177,93 @@ async function loadData() {
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
         
-        const drivers = processDriverData(jsonData);
+        const raceIndex = RACES.indexOf(raceName) + 1; // +1 because first column is name
+        const results = processRaceData(jsonData, raceIndex);
         
-        // Verileri göster
-        displayDrivers(drivers);
-        displayTeams(calculateTeamPoints(drivers));
+        displayRaceResults(results, raceName);
+    } catch (error) {
+        console.error("Yarış sonuçları yüklenirken hata:", error);
+        showError(error, 'race-results');
+    }
+}
+
+function processRaceData(data, raceIndex) {
+    return data.slice(1)
+        .filter(row => row && row.length > raceIndex && row[0])
+        .map(row => {
+            let points = 0;
+            if (typeof row[raceIndex] === 'number') {
+                points = row[raceIndex];
+            } else if (!isNaN(parseFloat(row[raceIndex]))) {
+                points = parseFloat(row[raceIndex]);
+            }
+            
+            const teamName = row[14];
+            const team = TEAMS[teamName] || {};
+            
+            return {
+                name: row[0].toUpperCase(),
+                points: points,
+                team: teamName,
+                ...team
+            };
+        })
+        .sort((a, b) => b.points - a.points);
+}
+
+function displayRaceResults(results, raceName) {
+    const container = document.getElementById('race-results');
+    container.innerHTML = '';
+    
+    const title = document.createElement('h3');
+    title.textContent = `${raceName} Yarış Sonuçları`;
+    title.className = 'race-title animate__animated animate__fadeIn';
+    container.appendChild(title);
+    
+    if (results.length === 0) {
+        container.innerHTML += '<p class="no-results animate__animated animate__fadeIn">Bu yarış için sonuç bulunamadı</p>';
+        return;
+    }
+    
+    results.forEach((driver, index) => {
+        const driverElement = document.createElement('div');
+        driverElement.className = `driver driver-${driver.cssClass} animate__animated animate__fadeInUp`;
+        driverElement.style.animationDelay = `${index * 50}ms`;
+        
+        driverElement.innerHTML = `
+            <span class="position">${index + 1}</span>
+            <img src="${driver.logo}" alt="${driver.team}" class="team-logo" loading="lazy">
+            <span class="name">${driver.name}</span>
+            <span class="points">${driver.points || '-'}</span>
+        `;
+        
+        if (driver.points === 0) {
+            driverElement.classList.add('no-points');
+        }
+        
+        container.appendChild(driverElement);
+    });
+}
+
+async function loadData() {
+    try {
+        showLoading();
+        
+        const response = await fetch('puanlar.xlsx');
+        if (!response.ok) throw new Error('Dosya bulunamadı');
+        
+        const data = await response.arrayBuffer();
+        const workbook = XLSX.read(data);
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        
+        displayDrivers(processDriverData(jsonData));
+        displayTeams(calculateTeamPoints(jsonData));
+        displayTeamPerformanceChart(jsonData);
         
     } catch (error) {
         console.error("Veri yükleme hatası:", error);
-        showError(error);
+        showError(error, 'drivers-leaderboard');
     }
 }
 
@@ -151,10 +282,9 @@ function showLoading() {
 }
 
 function processDriverData(data) {
-    return data.slice(1) // Başlık satırını atla
-        .filter(row => row && row.length >= 15 && row[0] && row[14]) // Geçerli satırları filtrele
+    return data.slice(1)
+        .filter(row => row && row.length >= 15 && row[0] && row[14])
         .map(row => {
-            // Puanı sayıya çevir (tarih formatındakileri 0 yap)
             let points = 0;
             if (typeof row[13] === 'number') {
                 points = row[13];
@@ -174,18 +304,29 @@ function processDriverData(data) {
         });
 }
 
-function calculateTeamPoints(drivers) {
+function calculateTeamPoints(data) {
     const teamPoints = {};
     
-    drivers.forEach(driver => {
-        if (!teamPoints[driver.team]) {
-            teamPoints[driver.team] = {
-                name: driver.team,
+    data.slice(1).forEach(row => {
+        if (!row || row.length < 15 || !row[14]) return;
+        
+        const teamName = row[14];
+        if (!teamPoints[teamName]) {
+            teamPoints[teamName] = {
+                name: teamName,
                 points: 0,
-                ...TEAMS[driver.team]
+                ...TEAMS[teamName]
             };
         }
-        teamPoints[driver.team].points += driver.points;
+        
+        let points = 0;
+        if (typeof row[13] === 'number') {
+            points = row[13];
+        } else if (!isNaN(parseFloat(row[13]))) {
+            points = parseFloat(row[13]);
+        }
+        
+        teamPoints[teamName].points += points;
     });
     
     return Object.values(teamPoints);
@@ -198,11 +339,10 @@ function displayDrivers(drivers) {
     drivers
         .sort((a, b) => b.points - a.points)
         .forEach((driver, index) => {
-            // Her öğe için gecikmeli animasyon
             const delay = index * 50;
             
             const driverElement = document.createElement('div');
-            driverElement.className = `driver driver-${driver.cssClass}`;
+            driverElement.className = `driver driver-${driver.cssClass} animate__animated animate__fadeInUp`;
             driverElement.style.animationDelay = `${delay}ms`;
             
             if (driver.points === 0) {
@@ -233,11 +373,10 @@ function displayTeams(teams) {
     teams
         .sort((a, b) => b.points - a.points)
         .forEach((team, index) => {
-            // Her öğe için gecikmeli animasyon
             const delay = index * 50;
             
             const teamElement = document.createElement('div');
-            teamElement.className = `team team-${team.cssClass}`;
+            teamElement.className = `team team-${team.cssClass} animate__animated animate__fadeInUp`;
             teamElement.style.animationDelay = `${delay}ms`;
             
             teamElement.innerHTML = `
@@ -251,7 +390,197 @@ function displayTeams(teams) {
         });
 }
 
-function showError(error) {
+function displayTeamPerformanceChart(data) {
+    const ctx = document.getElementById('team-performance-chart').getContext('2d');
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#FFFFFF' : '#333333';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    
+    // Takım verilerini işle
+    const teamData = {};
+    
+    // Tüm takımları başlat
+    Object.keys(TEAMS).forEach(team => {
+        teamData[team] = {
+            points: Array(RACES.length).fill(null),
+            total: 0
+        };
+    });
+    
+    // Son yapılan yarışın indeksini bul
+    let lastRaceIndex = RACES.length - 1;
+    for (let i = 0; i < RACES.length; i++) {
+        const raceIndex = i + 1; // Excel'deki sütun indeksi
+        let raceHasData = false;
+        
+        data.slice(1).forEach(row => {
+            if (!row || row.length <= raceIndex || !row[14]) return;
+            
+            const points = row[raceIndex];
+            if (typeof points === 'number' || (!isNaN(parseFloat(points)) && points !== '')) {
+                raceHasData = true;
+            }
+        });
+        
+        if (!raceHasData) {
+            lastRaceIndex = i - 1;
+            break;
+        }
+    }
+    
+    // Her yarış için kümülatif puanları hesapla
+    for (let i = 0; i < RACES.length; i++) {
+        const raceIndex = i + 1; // Excel'deki sütun indeksi
+        
+        data.slice(1).forEach(row => {
+            if (!row || row.length <= raceIndex || !row[14]) return;
+            
+            const teamName = row[14];
+            if (!teamData[teamName]) return;
+            
+            let points = 0;
+            if (typeof row[raceIndex] === 'number') {
+                points = row[raceIndex];
+            } else if (!isNaN(parseFloat(row[raceIndex]))) {
+                points = parseFloat(row[raceIndex]);
+            } else if (i > lastRaceIndex) {
+                // Yarış yapılmadıysa null olarak bırak
+                return;
+            }
+            
+            // Kümülatif toplamı güncelle
+            if (i === 0) {
+                teamData[teamName].points[i] = points;
+            } else {
+                teamData[teamName].points[i] = (teamData[teamName].points[i-1] || 0) + points;
+            }
+            
+            teamData[teamName].total += points;
+        });
+    }
+    
+    // Sıralama yap (en çok puan alandan en aza)
+    const sortedTeams = Object.entries(teamData)
+        .sort((a, b) => b[1].total - a[1].total)
+        .slice(0, 10); // En iyi 10 takım
+    
+    // Grafik verilerini hazırla
+    const chartData = {
+        labels: RACES,
+        datasets: sortedTeams.map(([teamName, data]) => ({
+            label: TEAMS[teamName].abbreviation,
+            data: data.points,
+            borderColor: TEAMS[teamName].color,
+            backgroundColor: TEAMS[teamName].color + '40', // %25 opacity
+            borderWidth: 2,
+            tension: 0.3,
+            pointRadius: function(context) {
+                return context.dataIndex <= lastRaceIndex ? 4 : 0;
+            },
+            pointHoverRadius: function(context) {
+                return context.dataIndex <= lastRaceIndex ? 6 : 0;
+            },
+            segment: {
+                borderColor: function(context) {
+                    return context.p1DataIndex <= lastRaceIndex ? TEAMS[teamName].color : 'transparent';
+                }
+            },
+            spanGaps: true
+        }))
+    };
+    
+    // Grafik ayarları
+    const config = {
+        type: 'line',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 1000,
+                easing: 'easeOutQuart'
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: textColor,
+                        font: {
+                            family: 'Teko',
+                            size: 14
+                        },
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    bodyFont: {
+                        family: 'Teko',
+                        size: 16
+                    },
+                    titleFont: {
+                        family: 'Teko',
+                        size: 14
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label || '';
+                            const value = context.raw !== null ? context.raw : 'Veri yok';
+                            return `${label}: ${value}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: gridColor
+                    },
+                    ticks: {
+                        color: textColor,
+                        font: {
+                            family: 'Teko',
+                            size: 12
+                        }
+                    }
+                },
+                y: {
+                    grid: {
+                        color: gridColor
+                    },
+                    ticks: {
+                        color: textColor,
+                        font: {
+                            family: 'Teko',
+                            size: 12
+                        },
+                        callback: function(value) {
+                            if (value % 1 === 0) {
+                                return value;
+                            }
+                        }
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    };
+    
+    // Eski grafiği temizle
+    if (teamPerformanceChart) {
+        teamPerformanceChart.destroy();
+    }
+    
+    // Yeni grafiği oluştur
+    teamPerformanceChart = new Chart(ctx, config);
+}
+
+function showError(error, elementId = 'drivers-leaderboard') {
     const errorHTML = `
         <div class="error animate__animated animate__shakeX">
             <p>VERİLER YÜKLENİRKEN HATA OLUŞTU</p>
@@ -259,5 +588,5 @@ function showError(error) {
         </div>
     `;
     
-    document.getElementById('drivers-leaderboard').innerHTML = errorHTML;
+    document.getElementById(elementId).innerHTML = errorHTML;
 }
